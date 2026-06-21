@@ -86,6 +86,7 @@ function normalizeExpr(expr) {
   return result;
 }
 function normalizeSlices(expr) {
+  // Matches arr[start:end:step] just like Python
   return expr.replace(
     /([A-Za-z_][A-Za-z0-9_]*)\s*
 
@@ -93,15 +94,15 @@ function normalizeSlices(expr) {
 
 ]*):([^:\]
 
-]*):?([^:\]
+]*)(?::([^:\]
 
-]*)\]
+]*))?\]
 
 /g,
     (match, varName, start, end, step) => {
       const s = start.trim() || "null";
       const e = end.trim() || "null";
-      const st = step.trim() || "null";
+      const st = step ? step.trim() : "null";
       return `pySlice(${varName}, ${s}, ${e}, ${st})`;
     }
   );
