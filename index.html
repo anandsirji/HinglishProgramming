@@ -772,7 +772,7 @@
     </div>
   </div>
 
-  <script src="hindilang2.js"></script>
+  <script src="hindilang2.js" onerror="window.__hindilangLoadFailed = true;"></script>
   <script>
     // ============================================================
     // Page navigation
@@ -806,6 +806,24 @@
       applyTheme(current === "dark" ? "light" : "dark");
     });
     applyTheme("dark");
+
+    // ============================================================
+    // Startup check: did hindilang2.js actually load?
+    // If not, show this immediately instead of waiting for Run to hang.
+    // ============================================================
+    if (window.__hindilangLoadFailed || typeof Interpreter === "undefined") {
+      const banner = document.createElement("div");
+      banner.style.background = "var(--error)";
+      banner.style.color = "#fff";
+      banner.style.padding = "14px 20px";
+      banner.style.fontWeight = "600";
+      banner.style.fontSize = "13.5px";
+      banner.style.textAlign = "center";
+      banner.textContent =
+        "⚠️ hindilang2.js load nahi hua. Make sure hindilang2.js index.html ke EXACT SAME folder mein hai, " +
+        "aur file ka naam sahi hai (case-sensitive). Run button kaam nahi karega jab tak yeh fix na ho.";
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
 
     // ============================================================
     // Playground: editor + run + output
@@ -921,8 +939,14 @@ dikhao(naam)`
       isRunning = true;
       runBtn.disabled = true;
       runBtn.textContent = "⏳ Chal raha hai...";
-      const interp = new Interpreter(addPrint, askInput);
       try {
+        if (typeof Interpreter === "undefined") {
+          throw new Error(
+            "Interpreter load nahi hua — hindilang2.js file missing ya path galat hai. " +
+            "Check karo ki hindilang2.js index.html ke saath same folder mein hai."
+          );
+        }
+        const interp = new Interpreter(addPrint, askInput);
         await interp.run(editor.value);
       } catch (e) {
         addBubble(e.toString ? e.toString() : String(e), "bubble-error");
