@@ -107,6 +107,25 @@ function normalizeSlices(expr) {
     }
   );
 }
+function normalizeSlices(expr) {
+  // Look for patterns like arr[...]
+  return expr.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*
+
+\[([^\]
+
+]*)\]
+
+/g,
+    (match, varName, inside) => {
+      // Split by ":" to get start:end:step
+      const parts = inside.split(":");
+      const s = parts[0].trim() || "null";
+      const e = parts.length > 1 && parts[1].trim() ? parts[1].trim() : "null";
+      const st = parts.length > 2 && parts[2].trim() ? parts[2].trim() : "null";
+      return `pySlice(${varName}, ${s}, ${e}, ${st})`;
+    }
+  );
+}
 
 // Python-like range() -> returns an array (sufficient for our loop usage)
 function pyRange(a, b, c) {
