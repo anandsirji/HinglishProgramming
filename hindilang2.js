@@ -75,7 +75,7 @@ function evalPythonExpr(expr, scope) {
              .replace(/\bsahi\b/g, "true")
              .replace(/\bgalat\b/g, "false");
 
-  // Handle slicing arr[a:b:c]
+  // Handle slicing and indexing safely
   expr = expr.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*
 
 \[([^\]
