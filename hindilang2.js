@@ -85,6 +85,27 @@ function normalizeExpr(expr) {
   result += tail;
   return result;
 }
+function normalizeSlices(expr) {
+  return expr.replace(
+    /([A-Za-z_][A-Za-z0-9_]*)\s*
+
+\[([^:\]
+
+]*):([^:\]
+
+]*):?([^:\]
+
+]*)\]
+
+/g,
+    (match, varName, start, end, step) => {
+      const s = start.trim() || "null";
+      const e = end.trim() || "null";
+      const st = step.trim() || "null";
+      return `pySlice(${varName}, ${s}, ${e}, ${st})`;
+    }
+  );
+}
 
 // Python-like range() -> returns an array (sufficient for our loop usage)
 function pyRange(a, b, c) {
@@ -104,6 +125,23 @@ function pyRange(a, b, c) {
   }
   return out;
 }
+function pySlice(obj, start, end, step) {
+  if (typeof obj === "string") obj = obj.split(""); // treat string like list of chars
+  if (!Array.isArray(obj)) throw new Error("Slicing only works on lists/strings");
+
+  const len = obj.length;
+  start = start == null ? 0 : (start < 0 ? len + start : start);
+  end = end == null ? len : (end < 0 ? len + end : end);
+  step = step == null ? 1 : step;
+
+  const result = [];
+  if (step > 0) {
+    for (let i = start; i < end; i += step) result.push(obj[i]);
+  } else {
+    for (let i = start; i > end; i += step) result.push(obj[i]);
+  }
+  return typeof obj[0] === "string" ? result.join("") : result;
+}
 
 class Interpreter {
   constructor(onPrint, onInput) {
@@ -115,6 +153,7 @@ class Interpreter {
 
   evalExpr(expr, scope, lineNo, lineText) {
     const normalized = normalizeExpr(expr);
+    const sliced = normalizeSlices(normalized);
     const varNames = Object.keys(scope);
     const varValues = varNames.map((k) => {
       const v = scope[k];
@@ -141,6 +180,7 @@ class Interpreter {
       (...args) => Math.min(...(Array.isArray(args[0]) ? args[0] : args)),
       (...args) => Math.max(...(Array.isArray(args[0]) ? args[0] : args)),
       (arr) => arr.reduce((a, b) => a + b, 0),
+      pySlice
     ];
 
     try {
