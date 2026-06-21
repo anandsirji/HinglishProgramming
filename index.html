@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Hinglish Programming — HindiLang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0a0d12;
+    --bg-rail: #0d1117;
+    --bg-panel: #11151c;
+    --bg-editor: #0d1117;
+    --bg-raised: #181d27;
+    --bg-input: #0a0d12;
+    --amber: #ffa657;
+    --amber-dim: #c97f3e;
+    --cyan: #79c0ff;
+    --green: #7ee787;
+    --pink: #ff7b72;
+    --text: #e6edf3;
+    --text-dim: #7d8590;
+    --text-faint: #4d5562;
+    --border: #21262d;
+    --border-bright: #30363d;
+    --bubble-out: #142b1f;
+    --bubble-out-border: #2a5a3f;
+    --bubble-sys: #181d27;
+    --shadow: rgba(0,0,0,0.6);
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f6f8fa;
+    --bg-rail: #ffffff;
+    --bg-panel: #ffffff;
+    --bg-editor: #fbfcfd;
+    --bg-raised: #eef1f4;
+    --bg-input: #ffffff;
+    --amber: #b25e0f;
+    --amber-dim: #94500d;
+    --cyan: #0969da;
+    --green: #1a7f37;
+    --pink: #cf222e;
+    --text: #1f2328;
+    --text-dim: #59636e;
+    --text-faint: #8c959f;
+    --border: #d1d9e0;
+    --border-bright: #b8c0c8;
+    --bubble-out: #ddf4e4;
+    --bubble-out-border: #aceebb;
+    --bubble-sys: #eef1f4;
+    --shadow: rgba(31,35,40,0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+  a { color: inherit; text-decoration: none; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+
+  /* ============================================================
+     APP SHELL — sidebar rail + main content, like an IDE
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    min-height: 100vh;
+  }
+
+  @media (max-width: 760px) {
+    .app-shell { grid-template-columns: 1fr; }
+  }
+
+  /* ---- Left rail (desktop) ---- */
+  .rail {
+    background: var(--bg-rail);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 0;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  @media (max-width: 760px) { .rail { display: none; } }
+
+  .rail-logo {
+    width: 36px; height: 36px;
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--amber);
+    margin-bottom: 18px;
+    background: var(--bg-raised);
+  }
+
+  .rail-btn {
+    width: 44px; height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--text-faint);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 17px;
+    position: relative;
+  }
+  .rail-btn .rail-label {
+    font-size: 8.5px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .rail-btn:hover { color: var(--text); background: var(--bg-raised); }
+  .rail-btn.active { color: var(--amber); }
+  .rail-btn.active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 8px; bottom: 8px;
+    width: 3px;
+    background: var(--amber);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .rail-spacer { flex: 1; }
+
+  /* ---- Mobile top bar (replaces rail on small screens) ---- */
+  .mobile-topbar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-rail);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 60;
+  }
+  @media (max-width: 760px) { .mobile-topbar { display: flex; } }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .mobile-brand .rail-logo { margin-bottom: 0; width: 30px; height: 30px; font-size: 11px; }
+
+  .mobile-menu-btn {
+    width: 38px; height: 38px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-raised);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .mobile-nav-drawer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0,0,0,0.5);
+  }
+  .mobile-nav-drawer.open { display: block; }
+  .mobile-nav-panel {
+    position: absolute;
+    top: 0; right: 0;
+    width: 78%;
+    max-width: 300px;
+    height: 100%;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mobile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .mobile-nav-item.active { color: var(--amber); background: var(--bg-raised); }
+  .mobile-nav-close {
+    align-self: flex-end;
+    background: none; border: none; color: var(--text-dim);
+    font-size: 20px; cursor: pointer; margin-bottom: 10px;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-col { min-width: 0; }
+
+  .topstrip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  @media (max-width: 760px) { .topstrip { display: none; } }
+
+  .breadcrumb {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb .sep { color: var(--text-faint); }
+  .breadcrumb .current { color: var(--text); }
+
+  .topstrip-right { display: flex; align-items: center; gap: 8px; }
+
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 6px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-raised);
+    color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  .icon-btn:hover { border-color: var(--amber-dim); }
+
+  .account-btn {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .account-btn:hover { border-color: var(--amber-dim); }
+  .avatar-dot {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    background: var(--amber);
+    color: #0a0d12;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 28px 24px 60px; }
+  .wrap-narrow { max-width: 900px; margin: 0 auto; padding: 28px 24px 60px; }
+  @media (max-width: 760px) {
+    .wrap, .wrap-narrow { padding: 18px 14px 90px; }
+  }
+
+  .page-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--green);
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .page-eyebrow::before { content: "//"; color: var(--text-faint); }
+
+  h1.page-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(24px, 4.2vw, 36px);
+    font-weight: 700;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  h1.page-title .accent { color: var(--amber); }
+  h1.page-title .cursor-blink {
+    display: inline-block;
+    width: 3px;
+    background: var(--amber);
+    margin-left: 4px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .tagline {
+    font-size: 14.5px;
+    color: var(--text-dim);
+    margin: 0 0 26px;
+    max-width: 640px;
+    line-height: 1.6;
+  }
+
+  /* ---------- Playground toolbar ---------- */
+  .playground-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .examples { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .chip {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+  }
+  .chip::before { content: "▸ "; color: var(--text-faint); }
+  .chip:hover { color: var(--amber); border-color: var(--amber-dim); }
+
+  /* ---------- Editor / Output layout ---------- */
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-faint);
+    letter-spacing: 0.03em;
+    background: var(--bg-raised);
+  }
+  .panel-head .ph-tag {
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-head .ph-tag::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+  }
+  .panel-head .ph-tag.tag-out::before { background: var(--cyan); }
+
+  /* Editor with line-number gutter */
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    min-height: 420px;
+    background: var(--bg-editor);
+    overflow: hidden;
+  }
+  .editor-gutter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-faint);
+    text-align: right;
+    padding: 18px 10px 18px 0;
+    user-select: none;
+    background: var(--bg-editor);
+    border-right: 1px solid var(--border);
+    min-width: 36px;
+    white-space: pre;
+    overflow: hidden;
+  }
+  #editor {
+    flex: 1;
+    background: var(--bg-editor);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.65;
+    padding: 18px;
+    border: none;
+    outline: none;
+    resize: none;
+    tab-size: 4;
+  }
+
+  .run-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  button { font-family: 'Inter', sans-serif; }
+
+  .btn {
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-run { background: var(--amber); color: #0a0d12; }
+  .btn-run:hover { background: #ffb675; }
+  [data-theme="light"] .btn-run:hover { background: #94500d; color: #fff; }
+  .btn-run:disabled { opacity: 0.6; cursor: default; }
+
+  .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border-bright); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+
+  .btn-cyan { background: var(--cyan); color: #0a0d12; }
+  .btn-cyan:hover { opacity: 0.88; }
+
+  /* Output panel = terminal-style chat thread */
+  #output {
+    flex: 1;
+    min-height: 420px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    background: var(--bg-editor);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .placeholder-msg {
+    color: var(--text-faint);
+    font-size: 13px;
+    margin: auto;
+    text-align: center;
+    padding: 20px;
+  }
+  .placeholder-msg::before { content: "$ "; color: var(--green); }
+
+  .bubble {
+    max-width: 82%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    align-self: flex-start;
+    border: 1px solid transparent;
+  }
+
+  .bubble-out {
+    background: var(--bubble-out);
+    border-color: var(--bubble-out-border);
+    color: var(--text);
+    align-self: flex-end;
+  }
+  .bubble-out::before { content: "→ "; color: var(--green); }
+
+  .bubble-sys {
+    background: var(--bubble-sys);
+    border-color: var(--border-bright);
+    color: var(--text-dim);
+  }
+  .bubble-sys::before { content: "? "; color: var(--cyan); }
+
+  .bubble-error {
+    background: color-mix(in srgb, var(--pink) 12%, transparent);
+    border-color: var(--pink);
+    color: var(--pink);
+    align-self: flex-start;
+  }
+  .bubble-error::before { content: "✗ "; }
+
+  .bubble-input {
+    background: transparent;
+    border: 1px dashed var(--amber-dim);
+    color: var(--amber);
+    align-self: stretch;
+    text-align: center;
+    font-size: 11.5px;
+  }
+
+  .input-row { display: flex; gap: 6px; align-self: stretch; }
+  .input-row input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .input-row input:focus { outline: 1px solid var(--cyan); }
+  .input-row button {
+    background: var(--cyan); color: #0a0d12; padding: 7px 14px;
+    border: none; border-radius: 4px; font-weight: 700; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  }
+
+  .footer-note {
+    margin-top: 24px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+    line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .footer-note .fn-prefix { color: var(--green); }
+  .footer-note code {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--amber);
+  }
+
+  details.cheatsheet {
+    margin-top: 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2px 16px;
+  }
+  details.cheatsheet summary {
+    cursor: pointer;
+    padding: 11px 0;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+  }
+  details.cheatsheet summary::marker { color: var(--amber); }
+
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px,1fr));
+    gap: 12px;
+    padding: 2px 0 16px;
+    font-size: 12.5px;
+  }
+  .cheat-item { color: var(--text-dim); line-height: 1.6; }
+  .cheat-item code { color: var(--cyan); font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- Startup error banner ---------- */
+  .startup-error-banner {
+    background: color-mix(in srgb, var(--pink) 15%, var(--bg));
+    border-bottom: 1px solid var(--pink);
+    color: var(--pink);
+    padding: 10px 18px;
+    font-weight: 600;
+    font-size: 12.5px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ---------- Commands reference page ---------- */
+  .cmd-search-wrap {
+    position: relative;
+    margin-bottom: 22px;
+  }
+  .cmd-search-wrap::before {
+    content: "$";
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  .cmd-search {
+    width: 100%;
+    padding: 11px 16px 11px 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-panel);
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cmd-search:focus { outline: 1px solid var(--cyan); }
+  .cmd-search::placeholder { color: var(--text-faint); }
+
+  .cmd-category { margin-bottom: 28px; }
+  .cmd-category h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--amber);
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cmd-category h2::before { content: "›"; color: var(--text-faint); }
+
+  .cmd-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .cmd-card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .cmd-keyword {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--cyan);
+    font-size: 13.5px;
+  }
+  .cmd-meaning { font-size: 12.5px; color: var(--text-dim); }
+  .cmd-example {
+    background: var(--bg-editor);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 13px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text);
+    white-space: pre-wrap;
+    margin-top: 6px;
+  }
+
+  /* ---------- Help & support page ---------- */
+  .faq-item {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .faq-q {
+    padding: 14px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13.5px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-q:hover { color: var(--amber); }
+  .faq-q::before { content: ">"; margin-right: 8px; color: var(--text-faint); }
+  .faq-a {
+    padding: 0 16px;
+    max-height: 0;
+    overflow: hidden;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.65;
+    transition: max-height 0.2s ease, padding 0.2s ease;
+  }
+  .faq-item.open .faq-a { padding: 0 16px 16px 38px; max-height: 400px; }
+  .faq-arrow { transition: transform 0.2s ease; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
+  .faq-item.open .faq-arrow { transform: rotate(90deg); }
+
+  .support-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+  }
+  .support-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+  }
+  .support-card h3 {
+    margin: 0 0 6px; font-size: 13.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+  .support-card p { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); line-height: 1.55; }
+
+  /* ---------- Modal (login / save) ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 100;
+    padding: 18px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 380px;
+    padding: 22px;
+    box-shadow: 0 20px 60px var(--shadow);
+    position: relative;
+  }
+  .modal h2 {
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 0 6px;
+    font-size: 17px;
+  }
+  .modal h2::before { content: "$ "; color: var(--green); }
+  .modal p.modal-sub { color: var(--text-dim); font-size: 12.5px; margin: 0 0 16px; line-height: 1.5; }
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block; font-size: 11.5px; font-weight: 600;
+    margin-bottom: 5px; color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .field input {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 5px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-input);
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .field input:focus { outline: 1px solid var(--cyan); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-actions .btn { flex: 1; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; color: var(--text-faint);
+    font-size: 16px; cursor: pointer;
+  }
+  .demo-banner {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--amber-dim);
+    border-radius: 4px;
+    padding: 9px 11px;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .snippet-list { max-height: 200px; overflow-y: auto; margin: 12px 0; }
+  .snippet-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; border-radius: 5px;
+    background: var(--bg-editor); border: 1px solid var(--border);
+    margin-bottom: 5px; font-size: 12.5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .snippet-row button { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .snippet-row button:hover { color: var(--amber); }
+  .snippet-empty { color: var(--text-faint); font-size: 12.5px; text-align: center; padding: 14px 0; font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- Bottom status bar (IDE-style) ---------- */
+  .statusbar {
+    position: fixed;
+    bottom: 0; left: 64px; right: 0;
+    height: 26px;
+    background: var(--cyan);
+    color: #0a0d12;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    z-index: 45;
+    font-weight: 600;
+  }
+  @media (max-width: 760px) { .statusbar { left: 0; } }
+  .statusbar-left, .statusbar-right { display: flex; align-items: center; gap: 14px; }
+  body { padding-bottom: 26px; }
+</style>
+</head>
+<body>
+  <!-- ===== Mobile top bar ===== -->
+  <div class="mobile-topbar">
+    <div class="mobile-brand">
+      <div class="rail-logo">&lt;/&gt;</div>
+      <span>HindiLang</span>
+    </div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+  </div>
+
+  <!-- ===== Mobile nav drawer ===== -->
+  <div class="mobile-nav-drawer" id="mobileNavDrawer">
+    <div class="mobile-nav-panel">
+      <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+      <button class="mobile-nav-item active" data-page="playground">▸ playground.hl</button>
+      <button class="mobile-nav-item" data-page="commands">▸ commands.ref</button>
+      <button class="mobile-nav-item" data-page="help">▸ help.md</button>
+      <div style="height:1px; background:var(--border); margin:8px 0;"></div>
+      <button class="mobile-nav-item" id="mobileThemeToggle">◐ theme badlo</button>
+      <button class="mobile-nav-item" id="mobileAccountBtn">⚉ login / account</button>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- ===== Left rail (desktop nav) ===== -->
+    <div class="rail">
+      <div class="rail-logo">&lt;/&gt;</div>
+      <button class="rail-btn active" data-page="playground" title="Playground">
+        <span>▸</span><span class="rail-label">run</span>
+      </button>
+      <button class="rail-btn" data-page="commands" title="Commands">
+        <span>#</span><span class="rail-label">cmds</span>
+      </button>
+      <button class="rail-btn" data-page="help" title="Help">
+        <span>?</span><span class="rail-label">help</span>
+      </button>
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" id="themeToggle" title="Theme badlo">
+        <span id="themeIcon">◐</span><span class="rail-label">theme</span>
+      </button>
+    </div>
+
+    <div class="main-col">
+      <!-- ===== Top strip (desktop) ===== -->
+      <div class="topstrip">
+        <div class="breadcrumb">
+          <span>hindilang</span><span class="sep">/</span><span class="current" id="breadcrumbCurrent">playground.hl</span>
+        </div>
+        <div class="topstrip-right">
+          <button class="account-btn" id="accountBtn">
+            <span class="avatar-dot">?</span>
+            <span id="accountLabel">login</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== Playground page ===== -->
+      <section class="page active" id="page-playground">
+        <div class="wrap">
+          <div class="page-eyebrow">hindilang v2 · runs entirely in your browser</div>
+          <h1 class="page-title">Hinglish <span class="accent">Programming</span><span class="cursor-blink">&nbsp;</span></h1>
+          <p class="tagline">Python jaisa simple, lekin Hindi mein. Koi keyword nahi chahiye variable banane ke liye — bas <code>x = 5</code> likho. Type karo, Run dabao, dekho kya hota hai.</p>
+
+          <div class="playground-toolbar">
+            <div class="examples" id="examples"></div>
+            <div style="flex:1"></div>
+            <button class="btn btn-ghost" id="saveBtn">save --snippet</button>
+          </div>
+
+          <div class="layout">
+            <div class="panel">
+              <div class="panel-head">
+                <span class="ph-tag">program.hl</span>
+                <span>utf-8</span>
+              </div>
+              <div class="editor-wrap">
+                <div class="editor-gutter" id="editorGutter">1</div>
+                <textarea id="editor" spellcheck="false"></textarea>
+              </div>
+              <div class="run-row">
+                <button class="btn btn-run" id="runBtn">▸ run</button>
+                <button class="btn btn-ghost" id="clearBtn">clear --output</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <span class="ph-tag tag-out">stdout</span>
+                <span id="outputLineCount">0 lines</span>
+              </div>
+              <div id="output">
+                <div class="placeholder-msg">run dabao, output yahan aayega</div>
+              </div>
+            </div>
+          </div>
+
+          <details class="cheatsheet">
+            <summary># quick-reference (poora reference "cmds" tab mein hai)</summary>
+            <div class="cheat-grid">
+              <div class="cheat-item"><code>x = 5</code><br>variable (no keyword)</div>
+              <div class="cheat-item"><code>dikhao(x)</code><br>print karo</div>
+              <div class="cheat-item"><code>pucho("...")</code><br>user se input lo</div>
+              <div class="cheat-item"><code>agar x &gt;= 5:</code><br>if (symbols waise hi rehte hain)</div>
+              <div class="cheat-item"><code>warna_agar</code> / <code>warna:</code><br>elif / else</div>
+              <div class="cheat-item"><code>jab_tak x &lt;= 5:</code><br>while loop</div>
+              <div class="cheat-item"><code>loop i range(5):</code><br>for loop</div>
+              <div class="cheat-item"><code>kaam jod(a, b):</code><br>function define karo</div>
+              <div class="cheat-item"><code>wapas a + b</code><br>return</div>
+              <div class="cheat-item"><code>aur / ya / nahi</code><br>and / or / not</div>
+            </div>
+          </details>
+
+          <p class="footer-note"><span class="fn-prefix"># </span>Yeh poora interpreter aapke browser mein hi chalta hai — koi server involved nahi hai. Page ko host karo (GitHub Pages, Netlify, etc.), aur sab use kar sakte hain.</p>
+        </div>
+      </section>
+
+      <!-- ===== Commands reference page ===== -->
+      <section class="page" id="page-commands">
+        <div class="wrap-narrow">
+          <div class="page-eyebrow">complete keyword index</div>
+          <h1 class="page-title">Command <span class="accent">Reference</span></h1>
+          <p class="tagline">Saare commands ek jagah. Search karo ya scroll karo — har command ke saath ek chhota example hai.</p>
+
+          <div class="cmd-search-wrap">
+            <input type="text" class="cmd-search" id="cmdSearch" placeholder="grep karo... e.g. 'loop', 'agar', 'function'" />
+          </div>
+
+          <div id="cmdReference"></div>
+        </div>
+      </section>
+
+      <!-- ===== Help & Support page ===== -->
+      <section class="page" id="page-help">
+        <div class="wrap-narrow">
+          <div class="page-eyebrow">faq + contact</div>
+          <h1 class="page-title">Help &amp; <span class="accent">Support</span></h1>
+          <p class="tagline">Atka hua mahsoos ho raha hai? Yahan common sawaalon ke jawab hain.</p>
+
+          <div id="faqList"></div>
+
+          <div class="support-grid">
+            <div class="support-card">
+              <h3>bug --report</h3>
+              <p>Kuch toot gaya ya expected se alag chal raha hai? Hamein batao.</p>
+              <a class="btn btn-ghost" href="mailto:support@hindilang.example?subject=HindiLang%20Bug%20Report">email bhejo</a>
+            </div>
+            <div class="support-card">
+              <h3>feature --suggest</h3>
+              <p>Koi command ya feature chahiye jo abhi nahi hai? Bata do.</p>
+              <a class="btn btn-ghost" href="mailto:support@hindilang.example?subject=HindiLang%20Feature%20Idea">idea bhejo</a>
+            </div>
+            <div class="support-card">
+              <h3>docs --browse</h3>
+              <p>Commands page par har keyword ka example mil jayega.</p>
+              <button class="btn btn-ghost" onclick="switchPage('commands')">commands dekho</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== Status bar ===== -->
+  <div class="statusbar">
+    <div class="statusbar-left">
+      <span id="statusPage">playground.hl</span>
+      <span id="statusLines">3 lines</span>
+    </div>
+    <div class="statusbar-right">
+      <span>hindilang v2</span>
+      <span id="statusTheme">dark</span>
+    </div>
+  </div>
+
+  <!-- ===== Login modal ===== -->
+  <div class="modal-overlay" id="loginOverlay">
+    <div class="modal">
+      <button class="modal-close" id="loginClose">✕</button>
+      <h2>login</h2>
+      <p class="modal-sub">Apna account banao ya login karo.</p>
+      <div class="demo-banner"># demo only — login sirf is browser tab ki session ke liye kaam karta hai. Tab band karne ya page reload karne par yeh reset ho jayega.</div>
+      <div class="field">
+        <label for="loginEmail">email</label>
+        <input type="email" id="loginEmail" placeholder="aapka@email.com" />
+      </div>
+      <div class="field">
+        <label for="loginPassword">password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-run" id="loginSubmit" style="flex:1;">login karo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Account menu modal ===== -->
+  <div class="modal-overlay" id="accountOverlay">
+    <div class="modal">
+      <button class="modal-close" id="accountClose">✕</button>
+      <h2>account</h2>
+      <p class="modal-sub" id="accountEmailDisplay"></p>
+      <div class="demo-banner"># demo session — yeh data sirf abhi ke liye hai, kahin save nahi hota.</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="logoutBtn" style="flex:1;">logout karo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Save snippet modal ===== -->
+  <div class="modal-overlay" id="saveOverlay">
+    <div class="modal">
+      <button class="modal-close" id="saveClose">✕</button>
+      <h2>save</h2>
+      <p class="modal-sub">Is session ke liye snippet save karo, ya hamesha ke liye .hl file download karo.</p>
+      <div class="demo-banner"># "saved snippets" sirf is tab ki session mein rehte hain. Permanently rakhne ke liye, ".hl file download karo" use karo.</div>
+      <div class="field">
+        <label for="snippetName">snippet naam</label>
+        <input type="text" id="snippetName" placeholder="mera-pehla-program" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cyan" id="saveSnippetBtn" style="flex:1;">session mein save karo</button>
+        <button class="btn btn-ghost" id="downloadBtn" style="flex:1;">.hl download</button>
+      </div>
+      <div class="snippet-list" id="snippetList"></div>
+    </div>
+  </div>
+
+  <script src="hindilang2.js" onerror="window.__hindilangLoadFailed = true;"></script>
+  <script>
+    // ============================================================
+    // Page navigation (rail buttons + mobile drawer both drive this)
+    // ============================================================
+    const PAGE_TITLES = {
+      playground: "playground.hl",
+      commands: "commands.ref",
+      help: "help.md",
+    };
+
+    function switchPage(pageName) {
+      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+      document.getElementById("page-" + pageName).classList.add("active");
+
+      document.querySelectorAll(".rail-btn[data-page]").forEach((t) => {
+        t.classList.toggle("active", t.dataset.page === pageName);
+      });
+      document.querySelectorAll(".mobile-nav-item[data-page]").forEach((t) => {
+        t.classList.toggle("active", t.dataset.page === pageName);
+      });
+
+      const title = PAGE_TITLES[pageName] || pageName;
+      const breadcrumbEl = document.getElementById("breadcrumbCurrent");
+      if (breadcrumbEl) breadcrumbEl.textContent = title;
+      const statusPageEl = document.getElementById("statusPage");
+      if (statusPageEl) statusPageEl.textContent = title;
+
+      closeMobileNav();
+      try { window.scrollTo({ top: 0, behavior: "instant" }); } catch (e) { window.scrollTo(0, 0); }
+    }
+
+    document.querySelectorAll(".rail-btn[data-page]").forEach((btn) => {
+      btn.addEventListener("click", () => switchPage(btn.dataset.page));
+    });
+    document.querySelectorAll(".mobile-nav-item[data-page]").forEach((btn) => {
+      btn.addEventListener("click", () => switchPage(btn.dataset.page));
+    });
+
+    // ============================================================
+    // Mobile nav drawer
+    // ============================================================
+    const mobileNavDrawer = document.getElementById("mobileNavDrawer");
+    function openMobileNav() { mobileNavDrawer.classList.add("open"); }
+    function closeMobileNav() { mobileNavDrawer.classList.remove("open"); }
+    document.getElementById("mobileMenuBtn").addEventListener("click", openMobileNav);
+    document.getElementById("mobileNavClose").addEventListener("click", closeMobileNav);
+    mobileNavDrawer.addEventListener("click", (e) => {
+      if (e.target === mobileNavDrawer) closeMobileNav();
+    });
+
+    // ============================================================
+    // Theme toggle (desktop rail + mobile drawer both call this)
+    // ============================================================
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      const icon = theme === "dark" ? "◐" : "◑";
+      document.getElementById("themeIcon").textContent = icon;
+      const statusThemeEl = document.getElementById("statusTheme");
+      if (statusThemeEl) statusThemeEl.textContent = theme;
+    }
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme");
+      applyTheme(current === "dark" ? "light" : "dark");
+    }
+    document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+    document.getElementById("mobileThemeToggle").addEventListener("click", toggleTheme);
+    applyTheme("dark");
+
+    // ============================================================
+    // Startup check: did hindilang2.js actually load?
+    // ============================================================
+    if (window.__hindilangLoadFailed || typeof Interpreter === "undefined") {
+      const banner = document.createElement("div");
+      banner.className = "startup-error-banner";
+      banner.textContent =
+        "hindilang2.js load nahi hua — index.html ke EXACT SAME folder mein hindilang2.js hona chahiye (case-sensitive filename). Run button kaam nahi karega jab tak yeh fix na ho.";
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+
+    // ============================================================
+    // Playground: editor + line gutter + run + output
+    // ============================================================
+    const editor = document.getElementById("editor");
+    const editorGutter = document.getElementById("editorGutter");
+    const output = document.getElementById("output");
+    const runBtn = document.getElementById("runBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const examplesBar = document.getElementById("examples");
+    const outputLineCount = document.getElementById("outputLineCount");
+    const statusLines = document.getElementById("statusLines");
+
+    function updateGutter() {
+      const lineCount = editor.value.split("\n").length;
+      let lines = "";
+      for (let i = 1; i <= lineCount; i++) lines += i + "\n";
+      editorGutter.textContent = lines.trim();
+      if (statusLines) statusLines.textContent = lineCount + (lineCount === 1 ? " line" : " lines");
+    }
+    editor.addEventListener("input", updateGutter);
+    editor.addEventListener("scroll", () => {
+      editorGutter.scrollTop = editor.scrollTop;
+    });
+
+    const EXAMPLES = {
+      "namaste": `naam = "Duniya"
+dikhao("Namaste,")
+dikhao(naam)`,
+      "agar/warna": `umar = 21
+agar umar >= 18:
+    dikhao("Aap adult hain")
+warna:
+    dikhao("Aap minor hain")`,
+      "loop": `loop i range(3):
+    dikhao("Code chal raha hai!")`,
+      "fizzbuzz": `loop i range(1, 16):
+    agar i % 15 == 0:
+        dikhao("FizzBuzz")
+    warna_agar i % 3 == 0:
+        dikhao("Fizz")
+    warna_agar i % 5 == 0:
+        dikhao("Buzz")
+    warna:
+        dikhao(i)`,
+      "function": `kaam jod(a, b):
+    wapas a + b
+
+dikhao(jod(3, 4))
+dikhao(jod(10, 25))`,
+      "input": `naam = pucho("Aapka naam kya hai?")
+dikhao("Namaste,")
+dikhao(naam)`
+    };
+
+    for (const [label, code] of Object.entries(EXAMPLES)) {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.textContent = label;
+      chip.onclick = () => { editor.value = code; updateGutter(); };
+      examplesBar.appendChild(chip);
+    }
+
+    editor.value = EXAMPLES["namaste"];
+    updateGutter();
+
+    function clearPlaceholder() {
+      const ph = output.querySelector(".placeholder-msg");
+      if (ph) ph.remove();
+    }
+
+    function updateOutputLineCount() {
+      const count = output.querySelectorAll(".bubble").length;
+      if (outputLineCount) outputLineCount.textContent = count + (count === 1 ? " line" : " lines");
+    }
+
+    function addBubble(text, cls) {
+      clearPlaceholder();
+      const div = document.createElement("div");
+      div.className = "bubble " + cls;
+      div.textContent = text;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+      updateOutputLineCount();
+      return div;
+    }
+
+    function addPrint(value) {
+      addBubble(String(value), "bubble-out");
+    }
+
+    function askInput(promptText) {
+      return new Promise((resolve) => {
+        clearPlaceholder();
+        if (promptText) {
+          addBubble(String(promptText), "bubble-sys");
+        }
+        const wrap = document.createElement("div");
+        wrap.className = "bubble bubble-input";
+        wrap.textContent = "awaiting input...";
+        output.appendChild(wrap);
+
+        const row = document.createElement("div");
+        row.className = "input-row";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "value likho...";
+        const send = document.createElement("button");
+        send.textContent = "send";
+
+        function submit() {
+          const val = input.value;
+          row.remove();
+          addBubble(val === "" ? "(khaali)" : val, "bubble-out");
+          output.scrollTop = output.scrollHeight;
+          resolve(val);
+        }
+
+        send.onclick = submit;
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") submit();
+        });
+
+        row.appendChild(input);
+        row.appendChild(send);
+        output.appendChild(row);
+        output.scrollTop = output.scrollHeight;
+        input.focus();
+      });
+    }
+
+    let isRunning = false;
+    async function runCode() {
+      if (isRunning) return;
+      isRunning = true;
+      runBtn.disabled = true;
+      runBtn.textContent = "⏳ running...";
+      try {
+        if (typeof Interpreter === "undefined") {
+          throw new Error(
+            "Interpreter load nahi hua — hindilang2.js file missing ya path galat hai. " +
+            "Check karo ki hindilang2.js index.html ke saath same folder mein hai."
+          );
+        }
+        const interp = new Interpreter(addPrint, askInput);
+        await interp.run(editor.value);
+      } catch (e) {
+        addBubble(e.toString ? e.toString() : String(e), "bubble-error");
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = "▸ run";
+        isRunning = false;
+      }
+    }
+
+    runBtn.onclick = runCode;
+    clearBtn.onclick = () => {
+      output.innerHTML = '<div class="placeholder-msg">run dabao, output yahan aayega</div>';
+      updateOutputLineCount();
+    };
+
+    editor.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = editor.value.slice(0, start) + "    " + editor.value.slice(end);
+        editor.selectionStart = editor.selectionEnd = start + 4;
+        updateGutter();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        runCode();
+      }
+    });
+
+    // ============================================================
+    // Command reference data + rendering
+    // ============================================================
+    const COMMANDS = [
+      {
+        category: "Variables",
+        items: [
+          { kw: "x = 5", meaning: "Variable banao — koi keyword nahi chahiye", example: 'naam = "Claude"\numar = 21\ndikhao(naam)' },
+        ],
+      },
+      {
+        category: "Output aur Input",
+        items: [
+          { kw: "dikhao(expr)", meaning: "Print karo / screen par dikhao", example: 'dikhao("Namaste Duniya")\ndikhao(5 + 3)' },
+          { kw: "pucho(prompt)", meaning: "User se input lo, value return karta hai", example: 'naam = pucho("Aapka naam?")\ndikhao(naam)' },
+        ],
+      },
+      {
+        category: "Conditions",
+        items: [
+          { kw: "agar <cond>:", meaning: "if — condition sahi hone par chalo", example: "agar x > 5:\n    dikhao(\"bada hai\")" },
+          { kw: "warna_agar <cond>:", meaning: "elif — pehli condition galat ho to yeh check karo", example: "agar x > 10:\n    dikhao(\"bada\")\nwarna_agar x > 5:\n    dikhao(\"madhyam\")" },
+          { kw: "warna:", meaning: "else — koi condition sahi nahi hui to yeh chalega", example: "agar x > 5:\n    dikhao(\"bada\")\nwarna:\n    dikhao(\"chota\")" },
+        ],
+      },
+      {
+        category: "Loops",
+        items: [
+          { kw: "jab_tak <cond>:", meaning: "while loop — condition sahi rehne tak chalta rahega", example: "i = 1\njab_tak i <= 5:\n    dikhao(i)\n    i = i + 1" },
+          { kw: "loop var range(n):", meaning: "for loop — 0 se n-1 tak", example: "loop i range(5):\n    dikhao(i)" },
+          { kw: "loop var range(a, b):", meaning: "for loop — a se b-1 tak", example: "loop i range(1, 6):\n    dikhao(i)" },
+        ],
+      },
+      {
+        category: "Functions",
+        items: [
+          { kw: "kaam naam(params):", meaning: "Function define karo", example: "kaam jod(a, b):\n    wapas a + b\n\ndikhao(jod(3, 4))" },
+          { kw: "wapas <expr>", meaning: "return — function se value bhejo", example: "kaam square(n):\n    wapas n * n" },
+        ],
+      },
+      {
+        category: "Operators (symbols same rehte hain)",
+        items: [
+          { kw: "+  -  *  /  %", meaning: "Math operators — Python jaise hi", example: "dikhao(10 + 5)\ndikhao(10 % 3)" },
+          { kw: "==  !=  >  <  >=  <=", meaning: "Comparison — symbols change nahi hote", example: "agar x >= 18:\n    dikhao(\"adult\")" },
+          { kw: "aur", meaning: "and — dono condition sahi honi chahiye", example: "agar x > 0 aur y > 0:\n    dikhao(\"dono positive\")" },
+          { kw: "ya", meaning: "or — koi ek condition sahi honi chahiye", example: "agar x > 100 ya y > 5:\n    dikhao(\"kam se kam ek bada\")" },
+          { kw: "nahi", meaning: "not — condition ko ulta karo", example: "agar nahi (x > 100):\n    dikhao(\"x 100 se bada nahi\")" },
+          { kw: "sahi / galat", meaning: "True / False", example: "x = sahi\nagar x:\n    dikhao(\"yeh chalega\")" },
+        ],
+      },
+      {
+        category: "Comments",
+        items: [
+          { kw: "# comment", meaning: "Yeh line ignore ho jaati hai", example: "# yeh ek comment hai\ndikhao(\"yeh chalega\")" },
+        ],
+      },
+    ];
+
+    function escapeHtml(s) {
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function renderCommands(filterText) {
+      const container = document.getElementById("cmdReference");
+      container.innerHTML = "";
+      const lower = (filterText || "").toLowerCase().trim();
+
+      let anyMatch = false;
+      for (const cat of COMMANDS) {
+        const matchingItems = cat.items.filter((item) => {
+          if (!lower) return true;
+          return (
+            item.kw.toLowerCase().includes(lower) ||
+            item.meaning.toLowerCase().includes(lower) ||
+            cat.category.toLowerCase().includes(lower)
+          );
+        });
+        if (matchingItems.length === 0) continue;
+        anyMatch = true;
+
+        const catDiv = document.createElement("div");
+        catDiv.className = "cmd-category";
+        const h2 = document.createElement("h2");
+        h2.textContent = cat.category;
+        catDiv.appendChild(h2);
+
+        for (const item of matchingItems) {
+          const card = document.createElement("div");
+          card.className = "cmd-card";
+          card.innerHTML = `
+            <div class="cmd-card-head">
+              <span class="cmd-keyword">${escapeHtml(item.kw)}</span>
+              <span class="cmd-meaning">${escapeHtml(item.meaning)}</span>
+            </div>
+            <div class="cmd-example">${escapeHtml(item.example)}</div>
+          `;
+          catDiv.appendChild(card);
+        }
+        container.appendChild(catDiv);
+      }
+
+      if (!anyMatch) {
+        container.innerHTML = '<p style="color:var(--text-faint); text-align:center; padding:40px 0; font-family:\'JetBrains Mono\',monospace; font-size:13px;">no matches found.</p>';
+      }
+    }
+
+    renderCommands("");
+    document.getElementById("cmdSearch").addEventListener("input", (e) => {
+      renderCommands(e.target.value);
+    });
+
+    // ============================================================
+    // FAQ (Help & Support)
+    // ============================================================
+    const FAQS = [
+      {
+        q: "HindiLang kya hai?",
+        a: "Yeh ek simple programming language hai jisme Python jaisi syntax hai, lekin keywords Hindi (Hinglish) mein hain. Jaise 'agar' = if, 'jab_tak' = while. Symbols (==, >=, +, etc.) same rehte hain."
+      },
+      {
+        q: "Kya mujhe coding pehle se aani chahiye?",
+        a: "Nahi! Yeh beginners ke liye banaya gaya hai. Commands tab mein har keyword ka example diya gaya hai — wahan se shuru kar sakte ho."
+      },
+      {
+        q: "Mera code save kahan hota hai?",
+        a: "Abhi yeh ek demo version hai. 'Save' button se aap session ke liye save kar sakte ho (jab tak tab khula hai), ya '.hl download' se permanently apne computer par rakh sakte ho."
+      },
+      {
+        q: "Login karne se kya hota hai?",
+        a: "Abhi login sirf demo ke liye hai — yeh real account system nahi hai, koi data server par nahi jaata. Jab hum real backend add karenge, tab login se aapka saved code sab devices par sync hoga."
+      },
+      {
+        q: "Mera code kaam nahi kar raha, kya karu?",
+        a: "Error message dhyan se padho — usme line number aur kya galat hai bataya jaata hai. Sabse common galti: ':' bhool jaana 'agar'/'jab_tak'/'loop'/'kaam' ke baad, ya indentation (spacing) sahi na hona."
+      },
+      {
+        q: "Kya mera code kahin bhej diya jaata hai?",
+        a: "Nahi. Poora interpreter aapke browser mein chalta hai. Koi server involved nahi hai, koi data kahin transmit nahi hota."
+      },
+    ];
+
+    function renderFaqs() {
+      const container = document.getElementById("faqList");
+      container.innerHTML = "";
+      FAQS.forEach((faq) => {
+        const item = document.createElement("div");
+        item.className = "faq-item";
+        item.innerHTML = `
+          <div class="faq-q">
+            <span>${escapeHtml(faq.q)}</span>
+            <span class="faq-arrow">▾</span>
+          </div>
+          <div class="faq-a">${escapeHtml(faq.a)}</div>
+        `;
+        item.querySelector(".faq-q").addEventListener("click", () => {
+          item.classList.toggle("open");
+        });
+        container.appendChild(item);
+      });
+    }
+    renderFaqs();
+
+    // ============================================================
+    // Login / Account (demo only, session-only state)
+    // ============================================================
+    let currentUser = null;
+
+    const loginOverlay = document.getElementById("loginOverlay");
+    const accountOverlay = document.getElementById("accountOverlay");
+    const accountBtn = document.getElementById("accountBtn");
+    const accountLabel = document.getElementById("accountLabel");
+    const mobileAccountBtn = document.getElementById("mobileAccountBtn");
+
+    function openModal(overlay) { overlay.classList.add("open"); }
+    function closeModal(overlay) { overlay.classList.remove("open"); }
+
+    function handleAccountClick() {
+      closeMobileNav();
+      if (currentUser) {
+        document.getElementById("accountEmailDisplay").textContent = "logged in as " + currentUser.email;
+        openModal(accountOverlay);
+      } else {
+        openModal(loginOverlay);
+      }
+    }
+    accountBtn.addEventListener("click", handleAccountClick);
+    mobileAccountBtn.addEventListener("click", handleAccountClick);
+
+    document.getElementById("loginClose").onclick = () => closeModal(loginOverlay);
+    document.getElementById("accountClose").onclick = () => closeModal(accountOverlay);
+
+    document.getElementById("loginSubmit").addEventListener("click", () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!email || !password) {
+        alert("Email aur password dono daalo (demo ke liye koi bhi value chalegi).");
+        return;
+      }
+      currentUser = { email };
+      const shortName = email.split("@")[0];
+      accountLabel.textContent = shortName;
+      document.querySelector("#accountBtn .avatar-dot").textContent = email[0].toUpperCase();
+      closeModal(loginOverlay);
+      document.getElementById("loginEmail").value = "";
+      document.getElementById("loginPassword").value = "";
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      currentUser = null;
+      accountLabel.textContent = "login";
+      document.querySelector("#accountBtn .avatar-dot").textContent = "?";
+      closeModal(accountOverlay);
+    });
+
+    // ============================================================
+    // Save / snippets (session-only) + file download
+    // ============================================================
+    let savedSnippets = [];
+
+    const saveOverlay = document.getElementById("saveOverlay");
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      renderSnippetList();
+      openModal(saveOverlay);
+    });
+    document.getElementById("saveClose").onclick = () => closeModal(saveOverlay);
+
+    function renderSnippetList() {
+      const list = document.getElementById("snippetList");
+      list.innerHTML = "";
+      if (savedSnippets.length === 0) {
+        list.innerHTML = '<div class="snippet-empty">abhi koi snippet save nahi hua.</div>';
+        return;
+      }
+      savedSnippets.forEach((snip, idx) => {
+        const row = document.createElement("div");
+        row.className = "snippet-row";
+        row.innerHTML = `<span>${escapeHtml(snip.name)}</span>`;
+        const btnGroup = document.createElement("span");
+
+        const loadBtn = document.createElement("button");
+        loadBtn.textContent = "load";
+        loadBtn.onclick = () => {
+          editor.value = snip.code;
+          updateGutter();
+          closeModal(saveOverlay);
+        };
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "delete";
+        delBtn.style.marginLeft = "10px";
+        delBtn.onclick = () => {
+          savedSnippets.splice(idx, 1);
+          renderSnippetList();
+        };
+
+        btnGroup.appendChild(loadBtn);
+        btnGroup.appendChild(delBtn);
+        row.appendChild(btnGroup);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById("saveSnippetBtn").addEventListener("click", () => {
+      const nameInput = document.getElementById("snippetName");
+      const name = nameInput.value.trim() || `snippet-${savedSnippets.length + 1}`;
+      savedSnippets.push({ name, code: editor.value });
+      nameInput.value = "";
+      renderSnippetList();
+    });
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      const nameInput = document.getElementById("snippetName");
+      const filename = (nameInput.value.trim() || "program").replace(/[^a-zA-Z0-9_-]/g, "_") + ".hl";
+      const blob = new Blob([editor.value], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+
+
+</body>
+</html>
