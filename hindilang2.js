@@ -10,7 +10,7 @@ class HindiLangError extends Error {
     this.lineText = lineText;
   }
   toString() {
-    return `❌ Error (line ${this.lineNo}): ${this.message}`;
+    return `❌ Error (line ${this.lineNo}) -> ${this.message}`;
   }
 }
 
@@ -55,9 +55,7 @@ function pySlice(obj, start, end, step) {
   return typeof obj[0] === "string" ? result.join("") : result;
 }
 
-function pyFloorDiv(a, b) {
-  return Math.floor(a / b);
-}
+function pyFloorDiv(a, b) { return Math.floor(a / b); }
 
 function pyIndex(obj, idx) {
   if (typeof obj === "string") obj = obj.split("");
@@ -86,20 +84,16 @@ function evalPythonExpr(expr, scope) {
 
 /g,
     (match, varName, inside) => {
-      const parts = inside.split(":");
-      const s = parts[0].trim() || "null";
-      const e = parts.length > 1 && parts[1].trim() ? parts[1].trim() : "null";
-      const st = parts.length > 2 && parts[2].trim() ? parts[2].trim() : "null";
-      return `pySlice(${varName}, ${s}, ${e}, ${st})`;
+      if (inside.includes(":")) {
+        const parts = inside.split(":");
+        const s = parts[0].trim() || "null";
+        const e = parts.length > 1 && parts[1].trim() ? parts[1].trim() : "null";
+        const st = parts.length > 2 && parts[2].trim() ? parts[2].trim() : "null";
+        return `pySlice(${varName}, ${s}, ${e}, ${st})`;
+      } else {
+        return `pyIndex(${varName}, ${inside.trim()})`;
+      }
     });
-
-  // Handle negative indexing arr[-1]
-  expr = expr.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*
-
-\[(-\d+)\]
-
-/g,
-    (match, varName, idx) => `pyIndex(${varName}, ${idx})`);
 
   // Handle floor division //
   expr = expr.replace(/(\S+)\s*\/\/\s*(\S+)/g,
@@ -129,7 +123,7 @@ function evalPythonExpr(expr, scope) {
 }
 
 // ---------------------------------------------------------------------------
-// Interpreter (statements remain same as v2)
+// Interpreter (statements remain same as v2, only evalExpr changed)
 // ---------------------------------------------------------------------------
 
 class Interpreter {
@@ -143,7 +137,7 @@ class Interpreter {
     return evalPythonExpr(expr, scope);
   }
 
-  // ... keep your existing executeBlock, handleIfChain, handleWhile, etc.
+  // Keep your existing executeBlock, handleIfChain, handleWhile, etc.
   // Replace only evalExpr calls with this new one.
 }
 
