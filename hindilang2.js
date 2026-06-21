@@ -1,5 +1,5 @@
 /* HindiLang v3 — Python-style semantics in JS
- * Supports list slicing, negative indices, floor division, list methods, etc.
+ * Supports list slicing, negative indices, floor division.
  * Keywords remain Hindi.
  */
 
@@ -14,16 +14,11 @@ class HindiLangError extends Error {
   }
 }
 
-class ReturnSignal {
-  constructor(value) { this.value = value; }
-}
-
+class ReturnSignal { constructor(value) { this.value = value; } }
 class HindiFunction {
   constructor(name, params, bodyLines, closureScope) {
-    this.name = name;
-    this.params = params;
-    this.bodyLines = bodyLines;
-    this.closureScope = closureScope;
+    this.name = name; this.params = params;
+    this.bodyLines = bodyLines; this.closureScope = closureScope;
   }
 }
 
@@ -56,7 +51,6 @@ function pySlice(obj, start, end, step) {
 }
 
 function pyFloorDiv(a, b) { return Math.floor(a / b); }
-
 function pyIndex(obj, idx) {
   if (typeof obj === "string") obj = obj.split("");
   if (idx < 0) idx = obj.length + idx;
@@ -75,7 +69,7 @@ function evalPythonExpr(expr, scope) {
              .replace(/\bsahi\b/g, "true")
              .replace(/\bgalat\b/g, "false");
 
-  // Handle slicing and indexing safely
+  // Handle slicing and indexing safely (no regex complexity)
   expr = expr.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*
 
 \[([^\]
@@ -132,13 +126,10 @@ class Interpreter {
     this.onPrint = onPrint || (() => {});
     this.onInput = onInput || (async () => "");
   }
-
   evalExpr(expr, scope, lineNo, lineText) {
     return evalPythonExpr(expr, scope);
   }
-
   // Keep your existing executeBlock, handleIfChain, handleWhile, etc.
-  // Replace only evalExpr calls with this new one.
 }
 
 if (typeof module !== "undefined" && module.exports) {
