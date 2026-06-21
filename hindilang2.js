@@ -69,7 +69,7 @@ function evalPythonExpr(expr, scope) {
              .replace(/\bsahi\b/g, "true")
              .replace(/\bgalat\b/g, "false");
 
-  // Handle slicing and indexing safely (no regex complexity)
+  // Handle slicing and indexing safely
   expr = expr.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*
 
 \[([^\]
@@ -107,13 +107,9 @@ function evalPythonExpr(expr, scope) {
     pySlice, pyFloorDiv, pyIndex
   };
 
-  try {
-    const fn = new Function(...Object.keys(builtin), ...Object.keys(scope),
-      `"use strict"; return (${expr});`);
-    return fn(...Object.values(builtin), ...Object.values(scope));
-  } catch (e) {
-    throw new HindiLangError(`Expression samajh nahi aaya: '${expr}' (${e.message})`);
-  }
+  const fn = new Function(...Object.keys(builtin), ...Object.keys(scope),
+    `"use strict"; return (${expr});`);
+  return fn(...Object.values(builtin), ...Object.values(scope));
 }
 
 // ---------------------------------------------------------------------------
