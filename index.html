@@ -1191,7 +1191,13 @@ dikhao(jod(3, 4))
 dikhao(jod(10, 25))`,
       "input": `naam = pucho("Aapka naam kya hai?")
 dikhao("Namaste,")
-dikhao(naam)`
+dikhao(naam)`,
+      "lists": `fruits = ["apple", "banana", "cherry"]
+dikhao(fruits)
+dikhao(fruits[0:2])
+dikhao(fruits[-1])
+fruits.append("date")
+dikhao(fruits)`
     };
 
     for (const [label, code] of Object.entries(EXAMPLES)) {
@@ -1355,9 +1361,23 @@ dikhao(naam)`
         ],
       },
       {
+        category: "Lists",
+        items: [
+          { kw: "[1, 2, 3]", meaning: "List banao — Python jaisi hi", example: 'fruits = ["apple", "banana", "cherry"]\ndikhao(fruits)' },
+          { kw: "list[index]", meaning: "Index se ek item nikalo (0 se shuru)", example: 'fruits = ["apple", "banana"]\ndikhao(fruits[0])' },
+          { kw: "list[-1]", meaning: "Negative index — aakhir se count karo", example: 'fruits = ["apple", "banana", "cherry"]\ndikhao(fruits[-1])' },
+          { kw: "list[a:b]", meaning: "Slicing — a se b-1 tak ka portion", example: "numbers = [1, 2, 3, 4, 5]\ndikhao(numbers[1:3])" },
+          { kw: "list[::-1]", meaning: "Reverse slicing — list ko ulta karo", example: "numbers = [1, 2, 3]\ndikhao(numbers[::-1])" },
+          { kw: "list.append(x)", meaning: "List ke end mein item add karo", example: 'fruits = ["apple"]\nfruits.append("banana")\ndikhao(fruits)' },
+          { kw: "list.pop()", meaning: "Last item nikalo aur list se remove karo", example: "numbers = [1, 2, 3]\nx = numbers.pop()\ndikhao(x)" },
+          { kw: "len(list)", meaning: "List ki length / size", example: 'fruits = ["a", "b", "c"]\ndikhao(len(fruits))' },
+        ],
+      },
+      {
         category: "Operators (symbols same rehte hain)",
         items: [
           { kw: "+  -  *  /  %", meaning: "Math operators — Python jaise hi", example: "dikhao(10 + 5)\ndikhao(10 % 3)" },
+          { kw: "//  **", meaning: "Floor division aur power — Python jaise hi", example: "dikhao(7 // 2)\ndikhao(2 ** 3)" },
           { kw: "==  !=  >  <  >=  <=", meaning: "Comparison — symbols change nahi hote", example: "agar x >= 18:\n    dikhao(\"adult\")" },
           { kw: "aur", meaning: "and — dono condition sahi honi chahiye", example: "agar x > 0 aur y > 0:\n    dikhao(\"dono positive\")" },
           { kw: "ya", meaning: "or — koi ek condition sahi honi chahiye", example: "agar x > 100 ya y > 5:\n    dikhao(\"kam se kam ek bada\")" },
@@ -1453,6 +1473,10 @@ dikhao(naam)`
       {
         q: "Kya mera code kahin bhej diya jaata hai?",
         a: "Nahi. Poora interpreter aapke browser mein chalta hai. Koi server involved nahi hai, koi data kahin transmit nahi hota."
+      },
+      {
+        q: "Kya lists (arrays) support hote hain?",
+        a: "Haan! Lists Python jaisi hi kaam karti hain — [1, 2, 3] se banao, list[0] se index karo, list[1:3] se slice karo, list[-1] se aakhri item lo, aur .append()/.pop() jaise methods bhi available hain. 'Lists' tab Commands page par poora reference hai."
       },
     ];
 
